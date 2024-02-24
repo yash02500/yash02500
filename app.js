@@ -1,19 +1,32 @@
-const http = require('http'); //importing http module
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const sequelize= require('./util/database');
+  
+const app = express();
 
-const express = require('express'); //importing express js 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-const app = express(); //storing express in app varibale
+// Body parser middleware to handle POST requests
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-app.use((req, res, next) => {  //creating middleware with 3 arguments request reponse and next
-    console.log('In the middleware!');
-    next(); // allows request to continue to the next middleware 
-});
+// Set up routes
+const routes = require('./routes/bookRoutes'); 
+app.use(routes);
 
+// Handle 404 errors
 app.use((req, res, next) => {
-    console.log('In another middleware!');
-    res.send(`{key1: value}`); //sending response as html type
+  res.status(404).send('404: Not Found');
 });
 
-const server = http.createServer(app); //creating server
+sequelize.sync()
+  .then(result => {
+    console.log(result);
+    app.listen(3000);
+  })
+  .catch(err => {
+    console.log(err);
+  });
 
-server.listen(3000);  // listens for 3000 port  
